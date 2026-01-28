@@ -1,0 +1,49 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'warpstream-workshop'
+    environment: 'local'
+
+scrape_configs:
+  # WarpStream Hosted Prometheus Endpoint
+  # Scrapes control plane metrics from WarpStream's hosted monitoring endpoint
+  # NOTE: VCI_ID and WARPSTREAM_APP_KEY are substituted from environment variables
+  # This file is a template - actual values are filled in by run-lab-7.sh
+  - job_name: 'warpstream-hosted'
+    static_configs:
+      - targets: ['api.warpstream.com']
+    metrics_path: '/api/v1/monitoring/prometheus/virtual_clusters/VCI_ID_PLACEHOLDER'
+    scheme: 'https'
+    basic_auth:
+      username: 'prometheus'
+      password: 'APP_KEY_PLACEHOLDER'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    honor_labels: true
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'warpstream_.*'
+        action: keep
+
+  # WarpStream Agent Local Metrics
+  # Scrapes agent performance metrics from the local agent's /metrics endpoint
+  - job_name: 'warpstream-agent'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+        labels:
+          agent: 'local-playground'
+    metrics_path: '/metrics'
+    scheme: 'http'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'warpstream_.*|go_.*|process_.*'
+        action: keep
+
+  # Prometheus Self-Monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 15s

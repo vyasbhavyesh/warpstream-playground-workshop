@@ -1,0 +1,13 @@
+services:
+  duckdb:
+    build:
+      context: .
+      dockerfile: Dockerfile.duckdb
+    container_name: lab6-duckdb
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./duckdb-data:/data
+      - /tmp/warpstream-tableflow-iceberg:/tableflow
+      - ../scripts:/data/scripts
+    command: tail -f /dev/null
